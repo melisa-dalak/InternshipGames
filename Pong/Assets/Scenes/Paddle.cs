@@ -1,6 +1,4 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
 using UnityEngine;
 
 public enum PaddleType //paddlelarý tanýmlamak için
@@ -17,11 +15,10 @@ public class Paddle : MonoBehaviour
     float height;
 
     public PaddleType paddleType;
-    [SerializeField]
-    private string Vertical = "Vertical"; 
 
-    [SerializeField]
+    private string Vertical = "Vertical"; 
     private string Vertical2 = "Vertical2";
+
     void Start()
     {
         height = transform.localScale.y; 
@@ -30,9 +27,8 @@ public class Paddle : MonoBehaviour
 
  
 
-    void Update()
+    void Update()  //paddle hareketleri
 
-        //paddle hareketleri
     {
         float moveVertical = 0f;
 
@@ -51,14 +47,11 @@ public class Paddle : MonoBehaviour
         {
             transform.position = new Vector3(transform.position.x, GameManager.bottomLeft.y + height / 2, transform.position.z);
         }
+
         else if (transform.position.y > GameManager.topRight.y - height / 2)
         {
             transform.position = new Vector3(transform.position.x, GameManager.topRight.y - height / 2, transform.position.z);
         }
 
-
     }
-
-  
-
 }

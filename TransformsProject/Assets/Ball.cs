@@ -28,7 +28,6 @@ public class Ball : MonoBehaviour
         else if (Input.GetKey(KeyCode.S))
             direction.y--;
 
-
         direction = direction.normalized;
 
         Vector2 velocity = direction * speed * Time.deltaTime;
@@ -36,20 +35,17 @@ public class Ball : MonoBehaviour
 
         targetPosition = ClampPosition(targetPosition);
 
-
-        //Debug.DrawLine(transform.position, targetPosition, Color.red, 10);
         Vector2 intersectionPoint;
-        if (CheckLineLineIntersection(wall.point1.position, wall.point2.position, transform.position, targetPosition, out intersectionPoint))
+        if (CheckLineLineIntersection(wall.point1.position, wall.point2.position, transform.position, targetPosition, out intersectionPoint)) 
         {
             intersectionPoint = intersectionPoint + ((Vector2)transform.position - intersectionPoint).normalized * 0.001f ;
             targetPosition = intersectionPoint;
         }
 
-
         transform.position = targetPosition;
     }
     
-    private Vector2 ClampPosition(Vector2 position)
+    private Vector2 ClampPosition(Vector2 position) //alanýn sýnýrlarý
     {
         float clampedX = Mathf.Clamp(position.x, GameManager.bottomLeft.x, GameManager.topRight.x);
         float clampedY = Mathf.Clamp(position.y, GameManager.bottomLeft.y, GameManager.topRight.y);

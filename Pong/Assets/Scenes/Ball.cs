@@ -5,32 +5,29 @@ public class Ball : MonoBehaviour
 {
     [SerializeField]
     float speed;
+    [SerializeField]
+    private float initialGizmoRotation = 0f;
 
     public Paddle paddleRight;
     public Paddle paddleLeft;
 
     Vector2 direction;
-    Vector2 position;
+
     private int scorePaddleRight = 0;
     private int scorePaddleLeft = 0;
 
-    [SerializeField]
-    private float initialGizmoRotation = 0f;
     private bool isGameStarted;
 
     public Text showScore;
 
     void Start()
     {
-
         direction = Vector2.one;
 
         paddleRight = GameObject.FindGameObjectWithTag("PaddleRight").GetComponent<Paddle>();
         paddleLeft = GameObject.FindGameObjectWithTag("PaddleLeft").GetComponent<Paddle>();
 
-
         direction = Quaternion.Euler(0f, 0f, initialGizmoRotation) * Vector2.right; //gizmo çizimi
-
 
         if (!isGameStarted)  //Top gizmo açýsýnda harekete baþlar
         {
@@ -54,19 +51,16 @@ public class Ball : MonoBehaviour
         Vector2 velocity = direction * speed * Time.deltaTime;
         Vector2 targetPosition = transform.position + new Vector3(velocity.x, velocity.y, 0f);
 
-        //Debug.DrawLine(transform.position, targetPosition, Color.red, 10);
 
         Vector2 intersection;
         if (CheckLineLineIntersection(paddleRight.transform.position - paddleRight.transform.up, paddleRight.transform.position + paddleRight.transform.up, transform.position, targetPosition, out intersection))
-        {
-            Debug.Log("aaaa");
+        { 
             intersection = intersection + ((Vector2)transform.position - intersection).normalized * 0.001f;
             targetPosition = intersection;
             direction.x = -direction.x;
         }
         else if (CheckLineLineIntersection(paddleLeft.transform.position - paddleLeft.transform.up, paddleLeft.transform.position + paddleLeft.transform.up, transform.position, targetPosition, out intersection))
         {
-            Debug.Log("aaaa");
             intersection = intersection + ((Vector2)transform.position - intersection).normalized * 0.001f;
             targetPosition = intersection;
             direction.x = -direction.x;
@@ -74,36 +68,14 @@ public class Ball : MonoBehaviour
 
         transform.position = targetPosition;
 
+        Score();
 
-
-        if (transform.position.x < GameManager.bottomLeft.x) //top alanýn saðýndan çýkarsa soldaki oyuncu 1 puan kazanýr
-        {
-            scorePaddleRight++;
-            showScore.text = "Right Player Score:" + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
-            ResetBall();
-        }
-        else if (transform.position.x > GameManager.topRight.x) // top alanýn solundan çýkarsa saðdaki oyuncu 1 puan kazanýr.
-        {
-            scorePaddleLeft++;
-            showScore.text = "Right Player Score: " + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
-            ResetBall();
-        }
-
-        if (scorePaddleLeft >= 2 || scorePaddleRight >= 2)    // 2 skor yapan kazanýr.
-        {
-            EndGame();
-        }
     }
 
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.green;
-    //    Gizmos.DrawWireSphere(position, 0.15f);
-    //}
     private void ResetBall()  // top sahadan çýktýktan sonra resetlensin
     {
         transform.position = Vector3.zero;
-        direction = Vector2.one.normalized;
+        direction = Vector2.one;
         isGameStarted = false;
     }
 
@@ -134,31 +106,30 @@ public class Ball : MonoBehaviour
         return false;
     }
 
-        private bool CheckCollisionWithPaddle(Paddle paddle)
-{
-    float paddleLeftEdge = paddle.transform.position.x - paddle.transform.localScale.x / 2f;
-    float paddleRightEdge = paddle.transform.position.x + paddle.transform.localScale.x / 2f;
-    float paddleTopEdge = paddle.transform.position.y + paddle.transform.localScale.y / 2f;
-    float paddleBottomEdge = paddle.transform.position.y - paddle.transform.localScale.y / 2f;
-
-    float ballLeftEdge = transform.position.x;
-    float ballRightEdge = transform.position.x;
-    float ballTopEdge = transform.position.y;
-    float ballBottomEdge = transform.position.y;
-
-    if (ballLeftEdge <= paddleRightEdge && ballRightEdge >= paddleLeftEdge &&
-        ballTopEdge >= paddleBottomEdge && ballBottomEdge <= paddleTopEdge)
+    private void Score()
     {
-        return true;
+        if (transform.position.x < GameManager.bottomLeft.x) //top alanýn solundan çýkarsa saðdaki oyuncu 1 puan kazanýr
+        {
+            scorePaddleRight++;
+            showScore.text = "Right Player Score:" + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
+            ResetBall();
+        }
+        else if (transform.position.x > GameManager.topRight.x) // top alanýn saðýndan çýkarsa soldaki oyuncu 1 puan kazanýr.
+        {
+            scorePaddleLeft++;
+            showScore.text = "Right Player Score: " + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
+            ResetBall();
+        }
+
+
+        if (scorePaddleLeft >= 10 || scorePaddleRight >= 10)    //skoru 10 yapan kazanýr.
+        {
+            EndGame();
+        }
+
     }
-
-    return false;
-}
-
     private void EndGame()
     {
-        Time.timeScale = 0f;
-
         if (scorePaddleLeft > scorePaddleRight)
         {
             showScore.text = "Game Over! LEFT PLAYER WÝN \nLeft Player Score: " + scorePaddleLeft + "\nRight Player Score: " + scorePaddleRight;
@@ -171,6 +142,7 @@ public class Ball : MonoBehaviour
         {
             showScore.text = "Game Over! Berabere! \nLeft Player Score: " + scorePaddleLeft + "\nRight Player Score: " + scorePaddleRight;
         }
+        Time.timeScale = 0f;
     }
 
 }
