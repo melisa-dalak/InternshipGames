@@ -3,10 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
-{
-   
+{ 
     public Gamer gamer;
-    public Bullet bullet;
     public Text scoreText;
 
     public int scoreGamer = 0;
@@ -24,7 +22,7 @@ public class GameManager : MonoBehaviour
         UpdateScoreText();
     }
 
-    private void UpdateScoreText()
+    public void UpdateScoreText()
     {
         scoreText.text = "Gamer score: " + scoreGamer + "\nEnemy score: " + scoreEnemy;
     }

@@ -4,10 +4,10 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - EnemyBullet
-  - GamerBullet
   - Enemy
   - Gamer
+  - GamerBullet
+  - EnemyBullet
   layers:
   - Default
   - TransparentFX
