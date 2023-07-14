@@ -4,14 +4,12 @@ public enum GamerType
     Gamer,
     Enemy
 }
-
 public class Gamer : MonoBehaviour
 {
-    public float speed = 5f;
-    public Vector3 point;
-
+    public float speed;
     public float RotationSpeed = 1f;
     public float zRotation = 45f;
+    public float BulletCreateSpeed;
 
     public GamerType gamerType;
 
@@ -23,14 +21,24 @@ public class Gamer : MonoBehaviour
     private Vector2 topLeft;
     private Vector2 topRight;
 
+    public Vector3 point;
+
     private GameManager gameManager;
-    
+    public Timer inputTimer;
+    private Animation animationComponent;
+
     void Start()
     {
         CalculateBounds();
+
         gameManager = FindObjectOfType<GameManager>();
 
         gameManager.UpdateScoreText();
+
+        inputTimer = new Timer(1f);
+        inputTimer.ForceComplete();
+       
+        animationComponent = GetComponent<Animation>();
     }
 
     void Update()
@@ -38,6 +46,7 @@ public class Gamer : MonoBehaviour
         Vector3 initialDirection = Vector3.up;
 
         Keycodes();
+        inputTimer.Update();
 
         Vector3 forwardDirection = GetForwardDirection(zRotation, initialDirection);
 
@@ -47,7 +56,7 @@ public class Gamer : MonoBehaviour
         WrapAroundScene();
     }
 
-    public Vector3 GetForwardDirection(float angle, Vector3 initialDirection)
+    public Vector3 GetForwardDirection(float angle, Vector3 initialDirection)  //Z rotation
     {
         float radians = angle * Mathf.Deg2Rad;
         float forwardX = initialDirection.x * Mathf.Cos(radians) - initialDirection.y * Mathf.Sin(radians);
@@ -55,7 +64,7 @@ public class Gamer : MonoBehaviour
         return new Vector3(forwardX, forwardY, 0f).normalized;
     }
 
-    private void WrapAroundScene()
+    private void WrapAroundScene()   //Continuous Area
     {
         Vector3 position = transform.position;
 
@@ -80,7 +89,7 @@ public class Gamer : MonoBehaviour
         transform.position = position;
     }
 
-    private void Keycodes()
+    private void Keycodes() //Key working
     {
         float RotationStandard = RotationSpeed * Time.deltaTime;
 
@@ -97,9 +106,15 @@ public class Gamer : MonoBehaviour
 
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                SpawnBullet(gamerBulletPrefab);
+                if (inputTimer.isDone()) 
+                {
+                    inputTimer.ReStart();
+                    SpawnBullet(gamerBulletPrefab);
+                }
+                
             }
         }
+
         else if (gamerType == GamerType.Enemy)
         {
             if (Input.GetKey(KeyCode.LeftArrow))
@@ -110,14 +125,19 @@ public class Gamer : MonoBehaviour
             {
                 zRotation -= RotationStandard;
             }
+
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                SpawnBullet(enemyBulletPrefab);
+                if (inputTimer.isDone())
+                {
+                    inputTimer.ReStart();
+                    SpawnBullet(enemyBulletPrefab);
+                }
             }
         }
     }
 
-    private void CalculateBounds()
+    private void CalculateBounds() //Area Calculating
     {
         float cameraDistance = transform.position.z - Camera.main.transform.position.z;
         bottomLeft = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, cameraDistance));
@@ -126,11 +146,12 @@ public class Gamer : MonoBehaviour
         topRight = Camera.main.ViewportToWorldPoint(new Vector3(1, 1, cameraDistance));
     }
 
-    private void SpawnBullet(GameObject bulletPrefab)
+    private void SpawnBullet(GameObject bulletPrefab) //create bullet
     {
         GameObject currentBullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-
+      
         Bullet bulletComponent = currentBullet.GetComponent<Bullet>();
+       
         if (bulletComponent != null)
         {
             bulletComponent.SetDirection(transform.up);
@@ -138,40 +159,27 @@ public class Gamer : MonoBehaviour
         Destroy(currentBullet, 10f);
     }
 
-
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        int scoreGamer = 0;
-        int scoreEnemy = 0;
-       
-
         if (gamerType == GamerType.Gamer && collision.gameObject.CompareTag("enemyBulletPrefab"))
         {
-            scoreGamer++;
             if (gameManager != null)
             {
                 gameManager.IncreaseScoreEnemy();
             }
+
             Destroy(collision.gameObject);
+            animationComponent.PlayAnimation();
         }
         else if (gamerType == GamerType.Enemy && collision.gameObject.CompareTag("gamerBulletPrefab"))
         {
-            scoreEnemy++;
             if (gameManager != null)
             {
                 gameManager.IncreaseScoreGamer();
             }
+
             Destroy(collision.gameObject);
+            animationComponent.PlayAnimation();
         }
-        if (scoreEnemy >= 5 || scoreGamer >= 5)
-        {
-            EndGame();
-        }
-    }
-    private void EndGame()
-    {
-        Time.timeScale = 0f;
-        gameManager.UpdateScoreText();
     }
 }
-

@@ -1,7 +1,7 @@
 
 using UnityEngine;
 
-public enum PaddleType //paddlelarý tanýmlamak için
+public enum PaddleType //describe for paddle type
 {
     PaddleRight,
     PaddleLeft
@@ -27,7 +27,7 @@ public class Paddle : MonoBehaviour
 
  
 
-    void Update()  //paddle hareketleri
+    void Update()  //paddle movements
 
     {
         float moveVertical = 0f;

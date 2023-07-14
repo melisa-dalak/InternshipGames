@@ -27,9 +27,9 @@ public class Ball : MonoBehaviour
         paddleRight = GameObject.FindGameObjectWithTag("PaddleRight").GetComponent<Paddle>();
         paddleLeft = GameObject.FindGameObjectWithTag("PaddleLeft").GetComponent<Paddle>();
 
-        direction = Quaternion.Euler(0f, 0f, initialGizmoRotation) * Vector2.right; //gizmo çizimi
+        direction = Quaternion.Euler(0f, 0f, initialGizmoRotation) * Vector2.right; //draw gizmo
 
-        if (!isGameStarted)  //Top gizmo açýsýnda harekete baþlar
+        if (!isGameStarted)  //Start movement for ball on gizmo line
         {
             float rotationAngle = initialGizmoRotation * Mathf.Deg2Rad;
             direction = new Vector2(Mathf.Cos(rotationAngle), Mathf.Sin(rotationAngle)).normalized;
@@ -39,7 +39,7 @@ public class Ball : MonoBehaviour
 
     void Update()
     {
-        if (transform.position.y < GameManager.bottomLeft.y && direction.y < 0) //alanýn sýnýrlarý
+        if (transform.position.y < GameManager.bottomLeft.y && direction.y < 0) //field boundaries
         {
             direction.y = -direction.y;
         }
@@ -48,17 +48,26 @@ public class Ball : MonoBehaviour
             direction.y = -direction.y;
         }
 
+        Intersection();
+
+        Score();
+
+    }
+    private void Intersection() //intersetion check and change direction
+    {
         Vector2 velocity = direction * speed * Time.deltaTime;
+
         Vector2 targetPosition = transform.position + new Vector3(velocity.x, velocity.y, 0f);
 
-
         Vector2 intersection;
+
         if (CheckLineLineIntersection(paddleRight.transform.position - paddleRight.transform.up, paddleRight.transform.position + paddleRight.transform.up, transform.position, targetPosition, out intersection))
-        { 
+        {
             intersection = intersection + ((Vector2)transform.position - intersection).normalized * 0.001f;
             targetPosition = intersection;
             direction.x = -direction.x;
         }
+
         else if (CheckLineLineIntersection(paddleLeft.transform.position - paddleLeft.transform.up, paddleLeft.transform.position + paddleLeft.transform.up, transform.position, targetPosition, out intersection))
         {
             intersection = intersection + ((Vector2)transform.position - intersection).normalized * 0.001f;
@@ -68,11 +77,8 @@ public class Ball : MonoBehaviour
 
         transform.position = targetPosition;
 
-        Score();
-
     }
-
-    private void ResetBall()  // top sahadan çýktýktan sonra resetlensin
+    private void ResetBall()  // reset after the ball leaves the field
     {
         transform.position = Vector3.zero;
         direction = Vector2.one;
@@ -80,7 +86,7 @@ public class Ball : MonoBehaviour
     }
 
 
-    private bool CheckLineLineIntersection(Vector2 line1Start, Vector2 line1End, Vector2 line2Start, Vector2 line2End, out Vector2 intersectionPoint) //line intersection metodunu burada oluþturuyoruz.
+    private bool CheckLineLineIntersection(Vector2 line1Start, Vector2 line1End, Vector2 line2Start, Vector2 line2End, out Vector2 intersectionPoint)  // We create the line intersection method here.
     {
         intersectionPoint = Vector2.zero;
         float denominator = ((line2End.y - line2Start.y) * (line1End.x - line1Start.x)) -
@@ -108,13 +114,13 @@ public class Ball : MonoBehaviour
 
     private void Score()
     {
-        if (transform.position.x < GameManager.bottomLeft.x) //top alanýn solundan çýkarsa saðdaki oyuncu 1 puan kazanýr
+        if (transform.position.x < GameManager.bottomLeft.x) 
         {
             scorePaddleRight++;
             showScore.text = "Right Player Score:" + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
             ResetBall();
         }
-        else if (transform.position.x > GameManager.topRight.x) // top alanýn saðýndan çýkarsa soldaki oyuncu 1 puan kazanýr.
+        else if (transform.position.x > GameManager.topRight.x) 
         {
             scorePaddleLeft++;
             showScore.text = "Right Player Score: " + scorePaddleRight + "  \nLeft Player Score: " + scorePaddleLeft;
@@ -122,7 +128,7 @@ public class Ball : MonoBehaviour
         }
 
 
-        if (scorePaddleLeft >= 10 || scorePaddleRight >= 10)    //skoru 10 yapan kazanýr.
+        if (scorePaddleLeft >= 10 || scorePaddleRight >= 10) 
         {
             EndGame();
         }
