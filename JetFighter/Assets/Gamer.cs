@@ -7,14 +7,14 @@ public enum GamerType
 public class Gamer : MonoBehaviour
 {
     public float speed;
-    public float RotationSpeed = 1f;
-    public float zRotation = 45f;
-    public float BulletCreateSpeed;
+    public float RotationSpeed;
+    public float zRotation;
 
     public GamerType gamerType;
 
-    public GameObject gamerBulletPrefab;
-    public GameObject enemyBulletPrefab;
+    public GameObject BulletPrefab;
+    public Timer inputTimer;
+    public Transform target;
 
     private Vector2 bottomLeft;
     private Vector2 bottomRight;
@@ -23,32 +23,20 @@ public class Gamer : MonoBehaviour
 
     public Vector3 point;
 
-    private GameManager gameManager;
-    public Timer inputTimer;
-    private Animation animationComponent;
-
     void Start()
     {
         CalculateBounds();
-
-        gameManager = FindObjectOfType<GameManager>();
-
-        gameManager.UpdateScoreText();
-
         inputTimer = new Timer(1f);
         inputTimer.ForceComplete();
-       
-        animationComponent = GetComponent<Animation>();
     }
 
     void Update()
     {
         Vector3 initialDirection = Vector3.up;
-
         Keycodes();
         inputTimer.Update();
 
-        Vector3 forwardDirection = GetForwardDirection(zRotation, initialDirection);
+        Vector3 forwardDirection = GetForwardDirection(zRotation, initialDirection); 
 
         transform.up = forwardDirection;
         transform.position += forwardDirection * speed * Time.deltaTime;
@@ -69,22 +57,13 @@ public class Gamer : MonoBehaviour
         Vector3 position = transform.position;
 
         if (position.x < bottomLeft.x)
-        {
             position.x = topRight.x;
-        }
         else if (position.x > bottomRight.x)
-        {
             position.x = topLeft.x;
-        }
-
         if (position.y > topLeft.y)
-        {
             position.y = bottomLeft.y;
-        }
         else if (position.y < bottomLeft.y)
-        {
             position.y = topLeft.y;
-        }
 
         transform.position = position;
     }
@@ -96,42 +75,31 @@ public class Gamer : MonoBehaviour
         if (gamerType == GamerType.Gamer)
         {
             if (Input.GetKey(KeyCode.A))
-            {
                 zRotation += RotationStandard;
-            }
             else if (Input.GetKey(KeyCode.D))
-            {
                 zRotation -= RotationStandard;
-            }
-
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (inputTimer.isDone()) 
+                if (inputTimer.isDone())
                 {
                     inputTimer.ReStart();
-                    SpawnBullet(gamerBulletPrefab);
-                }
-                
+                    SpawnBullet(BulletPrefab);
+                }              
             }
         }
 
         else if (gamerType == GamerType.Enemy)
         {
             if (Input.GetKey(KeyCode.LeftArrow))
-            {
                 zRotation += RotationStandard;
-            }
             else if (Input.GetKey(KeyCode.RightArrow))
-            {
                 zRotation -= RotationStandard;
-            }
-
             if (Input.GetKeyDown(KeyCode.Return))
             {
                 if (inputTimer.isDone())
                 {
                     inputTimer.ReStart();
-                    SpawnBullet(enemyBulletPrefab);
+                   SpawnBullet(BulletPrefab);
                 }
             }
         }
@@ -146,40 +114,19 @@ public class Gamer : MonoBehaviour
         topRight = Camera.main.ViewportToWorldPoint(new Vector3(1, 1, cameraDistance));
     }
 
-    private void SpawnBullet(GameObject bulletPrefab) //create bullet
+    private void SpawnBullet(GameObject bulletPrefab)
     {
         GameObject currentBullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-      
+
         Bullet bulletComponent = currentBullet.GetComponent<Bullet>();
-       
+        bulletComponent.target = target;
+
         if (bulletComponent != null)
         {
             bulletComponent.SetDirection(transform.up);
         }
+
         Destroy(currentBullet, 10f);
-    }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (gamerType == GamerType.Gamer && collision.gameObject.CompareTag("enemyBulletPrefab"))
-        {
-            if (gameManager != null)
-            {
-                gameManager.IncreaseScoreEnemy();
-            }
-
-            Destroy(collision.gameObject);
-            animationComponent.PlayAnimation();
-        }
-        else if (gamerType == GamerType.Enemy && collision.gameObject.CompareTag("gamerBulletPrefab"))
-        {
-            if (gameManager != null)
-            {
-                gameManager.IncreaseScoreGamer();
-            }
-
-            Destroy(collision.gameObject);
-            animationComponent.PlayAnimation();
-        }
     }
 }
